@@ -1,6 +1,5 @@
 from flask import request, jsonify
-from flask_socketio import emit
-from models import Score, Match, db, Player, Team, Round
+from models import Score, Match, db, Team, Round
 from . import score_bp
 from socket_instance import socketio
 from flask_cors import cross_origin
@@ -8,7 +7,7 @@ from flask_cors import cross_origin
 def update_successor_match(successor_match_id, current_match_id, winning_team_id):
     """Updates the successor match with the winning team"""
     try:
-        successor_match = Match.query.get(successor_match_id)
+        successor_match = db.session.get(Match, successor_match_id)
         if not successor_match:
             return
         

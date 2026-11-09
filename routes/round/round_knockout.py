@@ -2,7 +2,6 @@ from flask import request, jsonify
 from models import db, Tournament, Match, Team, Score, Round
 from sqlalchemy import func
 from . import round_bp
-from flask_cors import cross_origin
 import csv
 import io
 import math
