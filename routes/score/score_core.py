@@ -2,7 +2,6 @@ from flask import request, jsonify
 from models import Score, Match, db, Team, Round
 from . import score_bp
 from socket_instance import socketio
-from flask_cors import cross_origin
 
 def update_successor_match(successor_match_id, current_match_id, winning_team_id):
     """Updates the successor match with the winning team"""
@@ -201,7 +200,6 @@ def update_score():
         return jsonify({'error': str(e)}), 500
 
 @score_bp.route('/declare-walkover', methods=['POST', 'OPTIONS'])
-@cross_origin()
 def declare_walkover():
     """
     Declare a match outcome as Walkover.
@@ -305,7 +303,6 @@ def get_team_score():
     return jsonify(score_data), 200
 
 @score_bp.route('/score/match', methods=['GET', 'OPTIONS'])
-@cross_origin()
 def get_match_score():
     if request.method == 'OPTIONS':
         return '', 200

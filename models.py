@@ -4,6 +4,12 @@ from sqlalchemy import orm, event
 
 db = SQLAlchemy()
 
+class BaseModel(db.Model):
+    __abstract__ = True
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
 class MatchType(str, Enum):
     SINGLES = 'singles'
     DOUBLES = 'doubles'
@@ -14,7 +20,7 @@ class SkillType(str, Enum):
     ADVANCED = 'advanced'
     PROFESSIONAL = 'professional'
 
-class SuperTournament(db.Model):
+class SuperTournament(BaseModel):
     __tablename__ = 'super_tournament'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -23,7 +29,7 @@ class SuperTournament(db.Model):
     # Relationship
     seasons = db.relationship('Season', backref='super_tournament', lazy=True)
 
-class Season(db.Model):
+class Season(BaseModel):
     __tablename__ = 'season'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -32,7 +38,7 @@ class Season(db.Model):
     # Relationship
     tournaments = db.relationship('Tournament', backref='season', lazy=True)
 
-class Tournament(db.Model):
+class Tournament(BaseModel):
     __tablename__ = 'tournament'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     tournament_name = db.Column(db.String(255), nullable=False)
@@ -44,7 +50,7 @@ class Tournament(db.Model):
     num_courts = db.Column(db.Integer, default=1)
     season_id = db.Column(db.Integer, db.ForeignKey('season.id'), nullable=False) #make it nullable
 
-class Team(db.Model):
+class Team(BaseModel):
     team_id = db.Column(db.String(50), primary_key=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     points = db.Column(db.Integer, default=0)
@@ -56,7 +62,7 @@ class Team(db.Model):
     player1 = db.relationship('Player', foreign_keys=[player1_uuid])
     player2 = db.relationship('Player', foreign_keys=[player2_uuid])
 
-class Player(db.Model):
+class Player(BaseModel):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     uuid = db.Column(db.String(36), unique=True)
     first_name = db.Column(db.String(50), nullable=False)
@@ -79,7 +85,7 @@ class Player(db.Model):
     # Add relationship to super tournament
     super_tournament = db.relationship('SuperTournament', backref='players', lazy=True)
 
-class Match(db.Model):
+class Match(BaseModel):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     match_name = db.Column(db.String(50), nullable=False)
     team1_id = db.Column(db.String(50), db.ForeignKey('team.team_id'), nullable=True)
@@ -116,7 +122,7 @@ def sync_match_result_type(mapper, connection, target):
         target.result_type = target.result_type or 'regular'
         target.is_walkover = False
 
-class Score(db.Model):
+class Score(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     match_id = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=False)
     team_id = db.Column(db.String(50), db.ForeignKey('team.team_id'), nullable=False)
@@ -124,7 +130,7 @@ class Score(db.Model):
     points = db.Column(db.Integer, default=0)
     tournament_id = db.Column(db.Integer, db.ForeignKey('tournament.id'), nullable=False)
 
-class Round(db.Model):
+class Round(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     round_id = db.Column(db.Integer, nullable=False)
     team_id = db.Column(db.String(50), db.ForeignKey('team.team_id'), nullable=True)

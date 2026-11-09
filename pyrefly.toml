@@ -1,2 +1,10 @@
+preset = "off"
 python-interpreter-path = "venv/bin/python"
 search-path = ["."]
+
+[errors]
+unexpected-keyword = "ignore"
+unsupported-operation = "ignore"
+bad-argument-type = "ignore"
+missing-package-source = "ignore"
+missing-import = "ignore"

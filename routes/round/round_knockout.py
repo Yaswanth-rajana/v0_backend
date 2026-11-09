@@ -118,7 +118,7 @@ def get_top_teams_for_knockout():
         
         return jsonify({
             'top_teams': top_teams,
-            'total_teams': len(pool_standings) * teams_per_pool
+            'total_teams': len(pool_standings) * (teams_per_pool or 0)
         }), 200
         
     except Exception as e:
