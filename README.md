@@ -89,3 +89,25 @@ Result: 23 passing tests covering scoring, walkovers, duplicate prevention, and 
 - Flask-SQLAlchemy / SQLAlchemy 2.x
 - Flask-SocketIO & Gevent
 - MySQL
+
+## Future Improvements
+
+### Scalability and Future Match Outcomes
+
+The current implementation introduces a `result_type` field to distinguish regular matches from non-scoring outcomes such as Walkover.
+
+The architecture separates match outcome state from numerical scoring and reuses the existing knockout progression mechanism to advance winners.
+
+The current implementation is partially extensible. However, some backend serialization and frontend presentation logic still contain Walkover-specific conditions.
+
+Future improvements include:
+
+- Generalizing outcome declaration into a reusable API supporting multiple result types.
+- Centralizing winner validation, finalization and progression rules.
+- Replacing Walkover-specific frontend conditions with shared outcome-rendering utilities.
+- Supporting Forfeit as another non-scoring match outcome.
+- Supporting Bye during knockout bracket generation with automatic winner advancement.
+- Reducing redundant state by using `result_type` as the primary source of truth instead of maintaining a separate Walkover boolean.
+
+For this submission, Forfeit and Bye are considered future extensions and have not been implemented.
+
