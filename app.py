@@ -26,11 +26,15 @@ CORS(app, resources={
 
 db.init_app(app)
 
-with app.app_context():
-    # Create all tables if they don't exist
-    # Note: This only creates tables, it doesn't modify existing tables
-    # For adding columns to existing tables, use migration scripts
-    db.create_all()
+if os.environ.get('TESTING') != 'True':
+    with app.app_context():
+        # Create all tables if they don't exist
+        # Note: This only creates tables, it doesn't modify existing tables
+        # For adding columns to existing tables, use migration scripts
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f"db.create_all() startup notice: {e}")
 
 # Initialize routes and SocketIO
 initialize_routes(app)

@@ -128,6 +128,11 @@ env/
 venv/
 ENV/
 
+# IDE / Editor
+.vscode/
+.idea/
+.DS_Store
+
 
 # Spyder project settings
 .spyderproject

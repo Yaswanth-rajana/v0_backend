@@ -28,7 +28,7 @@ def get_round_standings(tournament_id, round_id):
                 pool_standings[match.pool] = {}
 
             # Get scores for this match
-            match_scores = [s for s in scores if s.match_id == match.id]
+            match_scores = [s for s in scores if str(s.match_id) == str(match.id)]
             
             for score in match_scores:
                 if score.team_id not in pool_standings[match.pool]:
@@ -55,7 +55,9 @@ def get_round_standings(tournament_id, round_id):
                 )
                 if opponent_score:
                     team_stats['points_lost'] += opponent_score.score
-                    if score.score > opponent_score.score:
+                    if getattr(match, 'winner_team_id', None) == score.team_id:
+                        team_stats['matches_won'] += 1
+                    elif not getattr(match, 'winner_team_id', None) and score.score > opponent_score.score:
                         team_stats['matches_won'] += 1
 
                 team_stats['total_scores'] = team_stats['matches_won']
@@ -366,23 +368,36 @@ def complete_round2():
         match_ids = [match.id for match in matches]
         scores = Score.query.filter(Score.match_id.in_(match_ids)).all()
 
-        # Create a dictionary to store team scores by pool
-        pool_scores = {}
+        # Create a dictionary to store team stats by pool
+        pool_stats = {}
         for match in matches:
-            if match.pool not in pool_scores:
-                pool_scores[match.pool] = {}
+            if match.pool not in pool_stats:
+                pool_stats[match.pool] = {}
+
+            # Initialize stats for both teams
+            for tid in [match.team1_id, match.team2_id]:
+                if tid and tid not in pool_stats[match.pool]:
+                    pool_stats[match.pool][tid] = {'matches_won': 0, 'points': 0}
+
+            # Credit walkover or regular winner
+            if match.winner_team_id and match.winner_team_id in pool_stats[match.pool]:
+                pool_stats[match.pool][match.winner_team_id]['matches_won'] += 1
 
             # Get scores for this match
-            match_scores = [s for s in scores if s.match_id == match.id]
+            match_scores = [s for s in scores if str(s.match_id) == str(match.id)]
             for score in match_scores:
-                if score.team_id not in pool_scores[match.pool]:
-                    pool_scores[match.pool][score.team_id] = 0
-                pool_scores[match.pool][score.team_id] += score.score
+                if score.team_id not in pool_stats[match.pool]:
+                    pool_stats[match.pool][score.team_id] = {'matches_won': 0, 'points': 0}
+                pool_stats[match.pool][score.team_id]['points'] += score.score
 
-        # Sort teams by score in each pool and get top teams
+        # Sort teams by matches_won then points in each pool and get top teams
         promoted_teams = []
-        for pool, team_scores in pool_scores.items():
-            sorted_teams = sorted(team_scores.items(), key=lambda x: x[1], reverse=True)
+        for pool, teams_dict in pool_stats.items():
+            sorted_teams = sorted(
+                teams_dict.items(),
+                key=lambda x: (x[1]['matches_won'], x[1]['points']),
+                reverse=True
+            )
             top_teams = sorted_teams[:num_promoted]
             promoted_teams.extend([team_id for team_id, _ in top_teams])
 

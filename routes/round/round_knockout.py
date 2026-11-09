@@ -60,7 +60,9 @@ def get_pool_standings(tournament_id, round_id):
                 pool_standings[pool][match.team1_id]['matches_played'] += 1
                 pool_standings[pool][match.team1_id]['points_scored'] += team1_score
                 pool_standings[pool][match.team1_id]['points_against'] += team2_score
-                if team1_score > team2_score:
+                if match.winner_team_id == match.team1_id:
+                    pool_standings[pool][match.team1_id]['matches_won'] += 1
+                elif not match.winner_team_id and team1_score > team2_score:
                     pool_standings[pool][match.team1_id]['matches_won'] += 1
                 
             # Update team 2 stats
@@ -68,7 +70,9 @@ def get_pool_standings(tournament_id, round_id):
                 pool_standings[pool][match.team2_id]['matches_played'] += 1
                 pool_standings[pool][match.team2_id]['points_scored'] += team2_score
                 pool_standings[pool][match.team2_id]['points_against'] += team1_score
-                if team2_score > team1_score:
+                if match.winner_team_id == match.team2_id:
+                    pool_standings[pool][match.team2_id]['matches_won'] += 1
+                elif not match.winner_team_id and team2_score > team1_score:
                     pool_standings[pool][match.team2_id]['matches_won'] += 1
     
     return pool_standings
@@ -167,11 +171,11 @@ def create_knockout_structure(team_ids, tournament_id, starting_round_id):
                     name=round_name
                 ))
         else:
-            # Create placeholder round entries for future rounds with TBD
+            # Future round descriptor row without placeholder team (nullable team_id)
             rounds.append(Round(
                 tournament_id=tournament_id,
                 round_id=current_round_id,
-                team_id="TBD",
+                team_id=None,
                 pool="knockout",
                 name=round_name
             ))
@@ -206,8 +210,8 @@ def create_knockout_structure(team_ids, tournament_id, starting_round_id):
                 match_name=match_name,
                 round_id=str(current_round_id),
                 pool="knockout",
-                team1_id="TBD",
-                team2_id="TBD",
+                team1_id=None,
+                team2_id=None,
                 round_number=round_num,
                 bracket_position=i,
                 status='pending'
@@ -304,7 +308,7 @@ def create_knockout_bracket():
         # Create initial scores for first round matches with known teams
         scores = []
         for match in matches:
-            if match.team1_id != "TBD" and match.team2_id != "TBD":  # Only for matches with known teams
+            if match.team1_id and match.team2_id:  # Only for matches with known teams
                 scores.extend([
                     Score(
                         match_id=match.id,
@@ -479,15 +483,14 @@ def create_knockout_from_matches():
                         )
                     ])
             else:
-                # Future rounds with TBD teams
-                for _ in range(teams_in_round):
-                    rounds.append(Round(
-                        tournament_id=tournament_id,
-                        round_id=current_round_id,
-                        team_id="TBD",
-                        pool="knockout",
-                        name=round_name
-                    ))
+                # Future rounds without assigned teams yet
+                rounds.append(Round(
+                    tournament_id=tournament_id,
+                    round_id=current_round_id,
+                    team_id=None,
+                    pool="knockout",
+                    name=round_name
+                ))
 
         # Create first round matches from provided matches
         print("\nCreating first round matches:")
@@ -522,8 +525,8 @@ def create_knockout_from_matches():
                     match_name=match_name,
                     round_id=str(current_round_id),
                     pool="knockout",
-                    team1_id="TBD",
-                    team2_id="TBD",
+                    team1_id=None,
+                    team2_id=None,
                     round_number=round_num,
                     bracket_position=i,
                     status='pending'
@@ -565,7 +568,7 @@ def create_knockout_from_matches():
         print("\nCreating initial scores for first round matches")
         scores = []
         for match in all_matches:
-            if match.team1_id != "TBD" and match.team2_id != "TBD":
+            if match.team1_id and match.team2_id:
                 scores.extend([
                     Score(
                         match_id=match.id,

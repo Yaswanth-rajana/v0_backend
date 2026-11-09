@@ -66,7 +66,18 @@ def get_super_tournament_details(super_tournament_id):
         # Query with eager loading of relationships
         super_tournament = SuperTournament.query.options(
             joinedload(SuperTournament.seasons).joinedload(Season.tournaments)
-        ).get_or_404(super_tournament_id)
+        ).filter_by(id=super_tournament_id).first()
+        
+        if not super_tournament:
+            # Fallback: check if the user entered a sub-tournament ID
+            tournament = Tournament.query.get(super_tournament_id)
+            if tournament and tournament.season and tournament.season.super_tournament:
+                super_tournament = SuperTournament.query.options(
+                    joinedload(SuperTournament.seasons).joinedload(Season.tournaments)
+                ).filter_by(id=tournament.season.super_tournament.id).first()
+
+        if not super_tournament:
+            return jsonify({"error": f"Tournament with ID {super_tournament_id} not found"}), 404
         
         # Build response data
         response_data = {

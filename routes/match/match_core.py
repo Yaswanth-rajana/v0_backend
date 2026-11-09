@@ -270,12 +270,19 @@ def update_match_status(match_id):
         if not match:
             return jsonify({'error': 'Match not found'}), 404
 
+        # Finalized match protection: unauthenticated requests cannot overwrite a finalized match
+        if match.is_final or match.status == 'completed':
+            return jsonify({'error': 'Match has already been finalized'}), 400
+
         # Update match status
         match.status = new_status
 
         # If status is completed, ensure the match is marked as final
         if new_status == 'completed':
             match.is_final = True
+            if not match.result_type or match.result_type != 'walkover':
+                match.result_type = 'regular'
+                match.is_walkover = False
 
         db.session.commit()
 

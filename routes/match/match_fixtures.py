@@ -128,7 +128,7 @@ def get_match_fixtures():
             # Get scores from lookup
             team1_score = score_lookup.get(match_id, {}).get(match.team1_id, 0)
             team2_score = score_lookup.get(match_id, {}).get(match.team2_id, 0)
-            match_result = f"{team1_score}-{team2_score}"
+            match_result = "WALKOVER" if match.is_walkover else f"{team1_score}-{team2_score}"
 
             # Get players from lookup
             team1_players = []
@@ -169,7 +169,9 @@ def get_match_fixtures():
                 'match_status': {
                     'winner_team_id': match.winner_team_id,
                     'is_final': match.is_final,
-                    'status': match.status
+                    'status': match.status,
+                    'is_walkover': bool(match.is_walkover),
+                    'result_type': match.result_type or 'regular'
                 },
                 'bracket_info': {
                     'round_number': match.round_number,

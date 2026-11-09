@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from enum import Enum
+from sqlalchemy import orm, event
 
 db = SQLAlchemy()
 
@@ -91,11 +92,29 @@ class Match(db.Model):
     court_number = db.Column(db.Integer)
     court_order = db.Column(db.Integer)
     status = db.Column(db.String(20), default='pending')
+    result_type = db.Column(db.String(20), default='regular')
+    is_walkover = db.Column(db.Boolean, default=False)
     predecessor_1 = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=True)
     predecessor_2 = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=True)
     successor = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=True)
     bracket_position = db.Column(db.Integer, nullable=True)
     round_number = db.Column(db.Integer, nullable=True)
+
+    @orm.validates('result_type')
+    def validate_result_type(self, key, value):
+        val = value or 'regular'
+        self.is_walkover = (val == 'walkover')
+        return val
+
+@event.listens_for(Match, 'before_insert')
+@event.listens_for(Match, 'before_update')
+def sync_match_result_type(mapper, connection, target):
+    """Enforces result consistency invariant before persistence"""
+    if target.result_type == 'walkover':
+        target.is_walkover = True
+    else:
+        target.result_type = target.result_type or 'regular'
+        target.is_walkover = False
 
 class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True)

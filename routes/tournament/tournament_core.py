@@ -131,6 +131,7 @@ def show_standings(tournament_id):
             m.team2_id,
             m.round_id,
             m.pool,
+            m.winner_team_id,
             s1.team_id as team1_id,
             s1.score as team1_score,
             s2.team_id as team2_id,
@@ -178,14 +179,20 @@ def show_standings(tournament_id):
         team_scores[round_id][match.team2_id]['points_lost'] += match.team1_score
         
         # Track match and determine winner
-        if match.team1_score == 0 and match.team2_score == 0:
+        if match.team1_score == 0 and match.team2_score == 0 and not getattr(match, 'winner_team_id', None):
             print("Match not played yet")
             continue
             
         team_scores[round_id][match.team1_id]['matches'].add(match.match_id)
         team_scores[round_id][match.team2_id]['matches'].add(match.match_id)
         
-        if match.team1_score > match.team2_score:
+        if getattr(match, 'winner_team_id', None) == match.team1_id:
+            team_scores[round_id][match.team1_id]['matches_won'] += 1
+            print(f"Winner: Team {match.team1_id}")
+        elif getattr(match, 'winner_team_id', None) == match.team2_id:
+            team_scores[round_id][match.team2_id]['matches_won'] += 1
+            print(f"Winner: Team {match.team2_id}")
+        elif match.team1_score > match.team2_score:
             team_scores[round_id][match.team1_id]['matches_won'] += 1
             print(f"Winner: Team {match.team1_id}")
         elif match.team2_score > match.team1_score:
@@ -504,6 +511,7 @@ def show_second_place_standings(tournament_id):
             m.team2_id,
             m.round_id,
             m.pool,
+            m.winner_team_id,
             s1.team_id as team1_id,
             s1.score as team1_score,
             s2.team_id as team2_id,
@@ -553,14 +561,20 @@ def show_second_place_standings(tournament_id):
         pool_scores[pool][match.team2_id]['points_lost'] += match.team1_score
         
         # Track match and determine winner
-        if match.team1_score == 0 and match.team2_score == 0:
+        if match.team1_score == 0 and match.team2_score == 0 and not getattr(match, 'winner_team_id', None):
             print("Match not played yet")
             continue
             
         pool_scores[pool][match.team1_id]['matches'].add(match.match_id)
         pool_scores[pool][match.team2_id]['matches'].add(match.match_id)
         
-        if match.team1_score > match.team2_score:
+        if getattr(match, 'winner_team_id', None) == match.team1_id:
+            pool_scores[pool][match.team1_id]['matches_won'] += 1
+            print(f"Winner: Team {match.team1_id}")
+        elif getattr(match, 'winner_team_id', None) == match.team2_id:
+            pool_scores[pool][match.team2_id]['matches_won'] += 1
+            print(f"Winner: Team {match.team2_id}")
+        elif match.team1_score > match.team2_score:
             pool_scores[pool][match.team1_id]['matches_won'] += 1
             print(f"Winner: Team {match.team1_id}")
         elif match.team2_score > match.team1_score:

@@ -1,0 +1,18 @@
+{
+  "venvPath": "/Users/yaswanthrajana/Documents/v0_backend",
+  "venv": "venv",
+  "pythonVersion": "3.14",
+  "reportMissingPackageSource": "none",
+  "reportMissingTypeStubs": "none",
+  "extraPaths": [
+    "./venv/lib/python3.14/site-packages"
+  ],
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": [
+        "./venv/lib/python3.14/site-packages"
+      ]
+    }
+  ]
+}
